@@ -15,6 +15,16 @@ import {
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
+import { Label } from "../../components/ui/label";
 
 import { ActivityStreamSection } from "./sections/ActivityStreamSection";
 import { CalendarSection } from "./sections/CalendarSection";
@@ -32,6 +42,13 @@ import { WorkloadSection } from "./sections/WorkloadSection";
 export const Dashboard = (): JSX.Element => {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const [activeSubMenu, setActiveSubMenu] = useState("");
+  
+  // Date range state
+  const [dateRange, setDateRange] = useState({
+    startDate: "2020-11-16",
+    endDate: "2020-12-16"
+  });
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const handleMenuClick = (menuName: string) => {
     setActiveMenu(menuName);
@@ -42,6 +59,26 @@ export const Dashboard = (): JSX.Element => {
   const handleSubMenuClick = (subMenuName: string) => {
     setActiveSubMenu(subMenuName);
     console.log(`Navigating to submenu: ${subMenuName}`);
+  };
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    };
+    
+    return `${formatDate(start)} - ${formatDate(end)}`;
+  };
+
+  const handleDateRangeUpdate = () => {
+    setIsDatePickerOpen(false);
+    console.log('Date range updated:', dateRange);
   };
 
   const renderContent = () => {
@@ -212,16 +249,73 @@ export const Dashboard = (): JSX.Element => {
               </h1>
               
               {/* Date Range Selector */}
-              <Card className="w-[280px] h-12 bg-[#e6ecf4] border-0 rounded-[14px]">
-                <CardContent className="p-0 flex items-center h-full">
-                  <div className="ml-[17px]">
-                    <CalendarIcon className="w-[18px] h-5" />
+              <Dialog open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <DialogTrigger asChild>
+                  <Card className="w-[280px] h-12 bg-[#e6ecf4] border-0 rounded-[14px] cursor-pointer hover:bg-[#e6ecf4]/80 transition-colors">
+                    <CardContent className="p-0 flex items-center h-full">
+                      <div className="ml-[17px]">
+                        <CalendarIcon className="w-[18px] h-5" />
+                      </div>
+                      <span className="ml-[14px] font-['Nunito_Sans',Helvetica] font-normal text-[#0a1629] text-base">
+                        {formatDateRange(dateRange.startDate, dateRange.endDate)}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] rounded-3xl">
+                  <DialogHeader>
+                    <DialogTitle className="font-['Nunito_Sans',Helvetica] font-bold text-[#0a1629] text-xl">
+                      Select Date Range
+                    </DialogTitle>
+                    <DialogDescription className="text-[#7d8592]">
+                      Choose the start and end dates for your data view.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="startDate" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Start Date
+                      </Label>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={dateRange.startDate}
+                        onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="col-span-3 rounded-[14px] border-gray-200 font-['Nunito_Sans',Helvetica]"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="endDate" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        End Date
+                      </Label>
+                      <Input
+                        id="endDate"
+                        type="date"
+                        value={dateRange.endDate}
+                        onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="col-span-3 rounded-[14px] border-gray-200 font-['Nunito_Sans',Helvetica]"
+                      />
+                    </div>
                   </div>
-                  <span className="ml-[14px] font-['Nunito_Sans',Helvetica] font-normal text-[#0a1629] text-base">
-                    Nov 16, 2020 - Dec 16, 2020
-                  </span>
-                </CardContent>
-              </Card>
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsDatePickerOpen(false)}
+                      className="rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      onClick={handleDateRangeUpdate}
+                      className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
+                    >
+                      Apply
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
