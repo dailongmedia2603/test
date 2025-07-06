@@ -1,4 +1,4 @@
-import { CalendarIcon, FilterIcon, PlusIcon, SearchIcon, MoreHorizontalIcon, EditIcon, TrashIcon, EyeIcon } from "lucide-react";
+import { CalendarIcon, FilterIcon, PlusIcon, SearchIcon, MoreHorizontalIcon, EditIcon, TrashIcon, EyeIcon, ExternalLinkIcon } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
 import { Button } from "../../../../components/ui/button";
@@ -26,124 +26,90 @@ import { STORAGE_KEYS } from "../../../../lib/storage";
 
 interface Project {
   id: string;
-  projectNumber: string;
-  title: string;
+  clientName: string;
+  projectName: string;
+  contractValue: number; // Giá trị hợp đồng
+  paidAmount: number; // Đã thanh toán
+  debt: number; // Công nợ
+  paymentProgress: number; // Tiến độ thanh toán (%)
+  projectProgress: number; // Tiến độ dự án (%)
+  status: "Đang chạy" | "Hoàn thành" | "Pending" | "Quá hạn";
+  startDate: string;
+  endDate?: string;
   description: string;
-  createdDate: string;
-  priority: "Low" | "Medium" | "High";
-  status: "Active" | "Completed" | "On Hold" | "Planning";
-  allTasks: number;
-  activeTasks: number;
-  completedTasks: number;
+  priority: "Thấp" | "Trung bình" | "Cao";
   assignees: {
     id: string;
     name: string;
     avatar: string;
   }[];
-  color: string;
+  link?: string;
   category: string;
-  deadline?: string;
 }
 
-// Default projects data
+// Default projects data based on the image
 const defaultProjects: Project[] = [
   {
     id: "1",
-    projectNumber: "PN0001265",
-    title: "Medical App (iOS native)",
-    description: "A comprehensive medical application for iOS with patient management and appointment scheduling features.",
-    createdDate: "Sep 12, 2020",
-    priority: "Medium",
-    status: "Active",
-    allTasks: 34,
-    activeTasks: 13,
-    completedTasks: 21,
+    clientName: "ABC Corporation",
+    projectName: "Website Redesign",
+    contractValue: 120000000,
+    paidAmount: 50000000,
+    debt: 70000000,
+    paymentProgress: 42, // (50/120)*100
+    projectProgress: 75,
+    status: "Đang chạy",
+    startDate: "2020-09-01",
+    endDate: "2020-12-31",
+    description: "Thiết kế lại website công ty với giao diện hiện đại",
+    priority: "Cao",
     assignees: [
       { id: "1", name: "John Doe", avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "2", name: "Jane Smith", avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "3", name: "Mike Johnson", avatar: "https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
+      { id: "2", name: "Jane Smith", avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
     ],
-    color: "#3f8cff",
-    category: "Mobile Development",
-    deadline: "Dec 15, 2020"
+    link: "https://abc-corp.com",
+    category: "Web Development"
   },
   {
     id: "2",
-    projectNumber: "PN0001221",
-    title: "Food Delivery Service",
-    description: "Complete food delivery platform with restaurant management and real-time tracking.",
-    createdDate: "Sep 10, 2020",
-    priority: "Medium",
-    status: "Active",
-    allTasks: 50,
-    activeTasks: 24,
-    completedTasks: 26,
+    clientName: "XYZ Industries",
+    projectName: "Marketing Campaign",
+    contractValue: 85000000,
+    paidAmount: 0,
+    debt: 85000000,
+    paymentProgress: 0,
+    projectProgress: 60,
+    status: "Đang chạy",
+    startDate: "2020-10-01",
+    endDate: "2021-01-31",
+    description: "Chiến dịch marketing tổng thể cho sản phẩm mới",
+    priority: "Trung bình",
     assignees: [
-      { id: "4", name: "Sarah Wilson", avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "5", name: "Tom Brown", avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "6", name: "Lisa Davis", avatar: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
+      { id: "3", name: "Mike Johnson", avatar: "https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
     ],
-    color: "#de92eb",
-    category: "Web Development",
-    deadline: "Nov 30, 2020"
+    link: "https://xyz-industries.com",
+    category: "Marketing"
   },
   {
     id: "3",
-    projectNumber: "PN0001290",
-    title: "Food Delivery Service",
-    description: "Enhanced version with AI-powered recommendations and advanced analytics.",
-    createdDate: "May 28, 2020",
-    priority: "Low",
-    status: "Completed",
-    allTasks: 23,
-    activeTasks: 0,
-    completedTasks: 23,
+    clientName: "Tech Innovators",
+    projectName: "Mobile App Dev",
+    contractValue: 350000000,
+    paidAmount: 350000000,
+    debt: 0,
+    paymentProgress: 100,
+    projectProgress: 100,
+    status: "Hoàn thành",
+    startDate: "2020-05-01",
+    endDate: "2020-10-31",
+    description: "Phát triển ứng dụng mobile cho iOS và Android",
+    priority: "Cao",
     assignees: [
-      { id: "7", name: "Alex Chen", avatar: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "8", name: "Emma Wilson", avatar: "https://images.pexels.com/photos/1212984/pexels-photo-1212984.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
+      { id: "4", name: "Sarah Wilson", avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
+      { id: "5", name: "Tom Brown", avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
     ],
-    color: "#0ac846",
-    category: "Web Development",
-    deadline: "Aug 15, 2020"
-  },
-  {
-    id: "4",
-    projectNumber: "PN0001301",
-    title: "E-commerce Platform",
-    description: "Modern e-commerce solution with advanced payment integration and inventory management.",
-    createdDate: "Oct 5, 2020",
-    priority: "High",
-    status: "Active",
-    allTasks: 67,
-    activeTasks: 45,
-    completedTasks: 22,
-    assignees: [
-      { id: "9", name: "David Lee", avatar: "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "10", name: "Sophie Turner", avatar: "https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "11", name: "Ryan Garcia", avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
-    ],
-    color: "#ff6b6b",
-    category: "E-commerce",
-    deadline: "Jan 20, 2021"
-  },
-  {
-    id: "5",
-    projectNumber: "PN0001312",
-    title: "CRM Dashboard",
-    description: "Customer relationship management system with advanced analytics and reporting.",
-    createdDate: "Nov 1, 2020",
-    priority: "Medium",
-    status: "Planning",
-    allTasks: 28,
-    activeTasks: 5,
-    completedTasks: 0,
-    assignees: [
-      { id: "12", name: "Maria Rodriguez", avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" },
-      { id: "13", name: "James Wilson", avatar: "https://images.pexels.com/photos/1212984/pexels-photo-1212984.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1" }
-    ],
-    color: "#ffbd21",
-    category: "Business Tools",
-    deadline: "Feb 28, 2021"
+    link: "https://tech-innovators.com",
+    category: "Mobile Development"
   }
 ];
 
@@ -153,116 +119,148 @@ export const ProjectsPageSection = (): JSX.Element => {
 
   // Filter and search states
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [priorityFilter, setPriorityFilter] = useState("All");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const [clientFilter, setClientFilter] = useState("Tất cả");
 
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [newProject, setNewProject] = useState({
-    title: "",
+    clientName: "",
+    projectName: "",
+    contractValue: 0,
+    paidAmount: 0,
     description: "",
-    priority: "Medium" as Project["priority"],
-    status: "Planning" as Project["status"],
+    priority: "Trung bình" as Project["priority"],
+    status: "Đang chạy" as Project["status"],
     category: "",
-    deadline: "",
-    color: "#3f8cff"
+    startDate: "",
+    endDate: "",
+    link: ""
   });
 
-  // Get unique categories for filter
-  const categories = Array.from(new Set(projects.map(p => p.category)));
+  // Get unique clients for filter
+  const clients = Array.from(new Set(projects.map(p => p.clientName)));
 
-  // Priority colors
-  const priorityColors = {
-    Low: "#0ac846",
-    Medium: "#ffbd21",
-    High: "#ff6b6b"
+  // Calculate statistics
+  const stats = {
+    total: projects.length,
+    running: projects.filter(p => p.status === "Đang chạy").length,
+    completed: projects.filter(p => p.status === "Hoàn thành").length,
+    pending: projects.filter(p => p.status === "Pending").length,
+    overdue: projects.filter(p => p.status === "Quá hạn").length
   };
 
   // Status colors
   const statusColors = {
-    Active: "#3f8cff",
-    Completed: "#0ac846",
-    "On Hold": "#ff6b6b",
-    Planning: "#ffbd21"
+    "Đang chạy": "#3f8cff",
+    "Hoàn thành": "#0ac846",
+    "Pending": "#ffbd21",
+    "Quá hạn": "#ff6b6b"
   };
 
   // Filter projects
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.projectNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = project.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         project.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "All" || project.status === statusFilter;
-    const matchesPriority = priorityFilter === "All" || project.priority === priorityFilter;
-    const matchesCategory = categoryFilter === "All" || project.category === categoryFilter;
+    const matchesStatus = statusFilter === "Tất cả" || project.status === statusFilter;
+    const matchesClient = clientFilter === "Tất cả" || project.clientName === clientFilter;
     
-    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
+    return matchesSearch && matchesStatus && matchesClient;
   });
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+  };
+
+  const calculateDebt = (contractValue: number, paidAmount: number) => {
+    return contractValue - paidAmount;
+  };
+
+  const calculatePaymentProgress = (contractValue: number, paidAmount: number) => {
+    return contractValue > 0 ? Math.round((paidAmount / contractValue) * 100) : 0;
+  };
+
   const handleCreateProject = () => {
-    if (!newProject.title.trim()) return;
+    if (!newProject.clientName.trim() || !newProject.projectName.trim()) return;
+
+    const debt = calculateDebt(newProject.contractValue, newProject.paidAmount);
+    const paymentProgress = calculatePaymentProgress(newProject.contractValue, newProject.paidAmount);
 
     const project: Project = {
       id: Date.now().toString(),
-      projectNumber: `PN${String(Date.now()).slice(-7)}`,
-      title: newProject.title,
-      description: newProject.description,
-      createdDate: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      }),
-      priority: newProject.priority,
+      clientName: newProject.clientName,
+      projectName: newProject.projectName,
+      contractValue: newProject.contractValue,
+      paidAmount: newProject.paidAmount,
+      debt: debt,
+      paymentProgress: paymentProgress,
+      projectProgress: 0,
       status: newProject.status,
-      allTasks: 0,
-      activeTasks: 0,
-      completedTasks: 0,
+      startDate: newProject.startDate || new Date().toISOString().split('T')[0],
+      endDate: newProject.endDate,
+      description: newProject.description,
+      priority: newProject.priority,
       assignees: [],
-      color: newProject.color,
-      category: newProject.category,
-      deadline: newProject.deadline
+      link: newProject.link,
+      category: newProject.category
     };
 
     setProjects(prev => [project, ...prev]);
     setNewProject({
-      title: "",
+      clientName: "",
+      projectName: "",
+      contractValue: 0,
+      paidAmount: 0,
       description: "",
-      priority: "Medium",
-      status: "Planning",
+      priority: "Trung bình",
+      status: "Đang chạy",
       category: "",
-      deadline: "",
-      color: "#3f8cff"
+      startDate: "",
+      endDate: "",
+      link: ""
     });
     setIsCreateDialogOpen(false);
   };
 
   const handleEditProject = () => {
-    if (!selectedProject || !newProject.title.trim()) return;
+    if (!selectedProject || !newProject.clientName.trim() || !newProject.projectName.trim()) return;
+
+    const debt = calculateDebt(newProject.contractValue, newProject.paidAmount);
+    const paymentProgress = calculatePaymentProgress(newProject.contractValue, newProject.paidAmount);
 
     setProjects(prev => prev.map(project => 
       project.id === selectedProject.id 
-        ? { ...project, ...newProject }
+        ? { 
+            ...project, 
+            ...newProject,
+            debt: debt,
+            paymentProgress: paymentProgress
+          }
         : project
     ));
     
     setIsEditDialogOpen(false);
     setSelectedProject(null);
     setNewProject({
-      title: "",
+      clientName: "",
+      projectName: "",
+      contractValue: 0,
+      paidAmount: 0,
       description: "",
-      priority: "Medium",
-      status: "Planning",
+      priority: "Trung bình",
+      status: "Đang chạy",
       category: "",
-      deadline: "",
-      color: "#3f8cff"
+      startDate: "",
+      endDate: "",
+      link: ""
     });
   };
 
   const handleDeleteProject = (projectId: string) => {
-    if (confirm("Are you sure you want to delete this project?")) {
+    if (confirm("Bạn có chắc chắn muốn xóa dự án này?")) {
       setProjects(prev => prev.filter(p => p.id !== projectId));
     }
   };
@@ -270,278 +268,354 @@ export const ProjectsPageSection = (): JSX.Element => {
   const openEditDialog = (project: Project) => {
     setSelectedProject(project);
     setNewProject({
-      title: project.title,
+      clientName: project.clientName,
+      projectName: project.projectName,
+      contractValue: project.contractValue,
+      paidAmount: project.paidAmount,
       description: project.description,
       priority: project.priority,
       status: project.status,
       category: project.category,
-      deadline: project.deadline || "",
-      color: project.color
+      startDate: project.startDate,
+      endDate: project.endDate || "",
+      link: project.link || ""
     });
     setIsEditDialogOpen(true);
   };
 
-  const renderProjectCard = (project: Project) => (
-    <Card key={project.id} className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b] hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex flex-row">
-          {/* Left section */}
-          <div className="flex-1">
-            <div className="flex items-start gap-4">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: project.color }}
-              >
-                <div className="w-6 h-6 bg-white rounded-sm"></div>
-              </div>
-              <div className="flex flex-col flex-1">
-                <span className="font-normal text-sm text-[#91929e]">
-                  {project.projectNumber}
-                </span>
-                <h3 className="font-bold text-lg text-[#0a1629] leading-[26px] mb-2">
-                  {project.title}
-                </h3>
-                <p className="text-sm text-[#7d8592] mb-4 line-clamp-2">
-                  {project.description}
-                </p>
-
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center">
-                    <CalendarIcon className="w-5 h-5 text-[#7d8592] mr-2" />
-                    <span className="font-semibold text-sm text-[#7d8592]">
-                      Created {project.createdDate}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center">
-                    <div 
-                      className="w-6 h-6 rounded-full flex items-center justify-center mr-2"
-                      style={{ backgroundColor: priorityColors[project.priority] }}
-                    >
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                    </div>
-                    <span 
-                      className="font-bold text-sm"
-                      style={{ color: priorityColors[project.priority] }}
-                    >
-                      {project.priority}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center">
-                    <div 
-                      className="w-6 h-6 rounded-full flex items-center justify-center mr-2"
-                      style={{ backgroundColor: statusColors[project.status] }}
-                    >
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                    </div>
-                    <span 
-                      className="font-bold text-sm"
-                      style={{ color: statusColors[project.status] }}
-                    >
-                      {project.status}
-                    </span>
-                  </div>
-                </div>
-
-                {project.deadline && (
-                  <div className="flex items-center mb-4">
-                    <CalendarIcon className="w-4 h-4 text-[#ff6b6b] mr-2" />
-                    <span className="text-sm text-[#ff6b6b] font-semibold">
-                      Deadline: {project.deadline}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right section */}
-          <div className="w-[300px] pl-6 border-l border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold text-base text-[#0a1629]">
-                Project Data
-              </h4>
-              
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openEditDialog(project)}
-                  className="h-8 w-8 p-0 hover:bg-blue-50"
-                >
-                  <EditIcon className="h-4 w-4 text-[#3f8cff]" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteProject(project.id)}
-                  className="h-8 w-8 p-0 hover:bg-red-50"
-                >
-                  <TrashIcon className="h-4 w-4 text-[#ff6b6b]" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div>
-                <p className="font-normal text-sm text-[#91929e]">All tasks</p>
-                <p className="font-bold text-base text-[#0a1629] mt-1">{project.allTasks}</p>
-              </div>
-              <div>
-                <p className="font-normal text-sm text-[#91929e]">Active tasks</p>
-                <p className="font-bold text-base text-[#0a1629] mt-1">{project.activeTasks}</p>
-              </div>
-              <div>
-                <p className="font-normal text-sm text-[#91929e]">Completed</p>
-                <p className="font-bold text-base text-[#0a1629] mt-1">{project.completedTasks}</p>
-              </div>
-            </div>
-
-            <div>
-              <p className="font-normal text-sm text-[#91929e] mb-2">Assignees</p>
-              <div className="flex -space-x-2">
-                {project.assignees.slice(0, 4).map((assignee, index) => (
-                  <Avatar
-                    key={assignee.id}
-                    className="w-[26px] h-[26px] border-2 border-white"
-                    style={{ zIndex: 4 - index }}
-                  >
-                    <AvatarImage src={assignee.avatar} alt={assignee.name} />
-                    <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                ))}
-                {project.assignees.length > 4 && (
-                  <div className="w-6 h-6 rounded-full bg-[#3f8cff] flex items-center justify-center -ml-1 border-2 border-white">
-                    <span className="font-semibold text-xs text-white">
-                      +{project.assignees.length - 4}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <p className="font-normal text-sm text-[#91929e] mb-1">Category</p>
-              <span className="inline-block px-3 py-1 bg-[#f4f9fd] text-[#3f8cff] text-sm font-semibold rounded-full">
-                {project.category}
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const updateProjectProgress = (projectId: string, newProgress: number) => {
+    setProjects(prev => prev.map(project => 
+      project.id === projectId 
+        ? { ...project, projectProgress: newProgress }
+        : project
+    ));
+  };
 
   return (
     <div className="w-full space-y-6">
-      {/* Header with filters and search */}
+      {/* Header with Statistics */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="font-['Nunito_Sans',Helvetica] font-bold text-[#0a1629] text-[32px]">
+              Quản lý Dự án
+            </h1>
+            <p className="text-[#7d8592] font-['Nunito_Sans',Helvetica] mt-2">
+              Theo dõi, quản lý và phân tích tất cả các dự án của bạn.
+            </p>
+          </div>
+          <Button className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold">
+            Thời gian
+          </Button>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-5 gap-4">
+          <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b] border-2 border-[#3f8cff]/20">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#3f8cff] rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-sm"></div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#7d8592] font-['Nunito_Sans',Helvetica]">Tổng dự án</p>
+                  <p className="text-2xl font-bold text-[#0a1629] font-['Nunito_Sans',Helvetica]">{stats.total}</p>
+                  <p className="text-xs text-[#7d8592] font-['Nunito_Sans',Helvetica]">Dự án đang hoạt động</p>
+                </div>
+                <div className="ml-auto text-green-500">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#3f8cff] rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-full"></div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#7d8592] font-['Nunito_Sans',Helvetica]">Đang chạy</p>
+                  <p className="text-2xl font-bold text-[#0a1629] font-['Nunito_Sans',Helvetica]">{stats.running}</p>
+                  <p className="text-xs text-[#7d8592] font-['Nunito_Sans',Helvetica]">Dự án đang triển khai</p>
+                </div>
+                <div className="ml-auto text-green-500">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#0ac846] rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-sm"></div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#7d8592] font-['Nunito_Sans',Helvetica]">Hoàn thành</p>
+                  <p className="text-2xl font-bold text-[#0a1629] font-['Nunito_Sans',Helvetica]">{stats.completed}</p>
+                  <p className="text-xs text-[#7d8592] font-['Nunito_Sans',Helvetica]">Dự án đã kết thúc</p>
+                </div>
+                <div className="ml-auto text-green-500">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#ffbd21] rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-sm"></div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#7d8592] font-['Nunito_Sans',Helvetica]">Pending</p>
+                  <p className="text-2xl font-bold text-[#0a1629] font-['Nunito_Sans',Helvetica]">{stats.pending}</p>
+                  <p className="text-xs text-[#7d8592] font-['Nunito_Sans',Helvetica]">Dự án đang lên kế hoạch</p>
+                </div>
+                <div className="ml-auto text-green-500">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#ff6b6b] rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-sm"></div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#7d8592] font-['Nunito_Sans',Helvetica]">Quá hạn</p>
+                  <p className="text-2xl font-bold text-[#0a1629] font-['Nunito_Sans',Helvetica]">{stats.overdue}</p>
+                  <p className="text-xs text-[#7d8592] font-['Nunito_Sans',Helvetica]">Dự án trễ deadline</p>
+                </div>
+                <div className="ml-auto text-green-500">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
       <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-['Nunito_Sans',Helvetica] font-bold text-[#0a1629] text-[28px]">
-              All Projects ({filteredProjects.length})
-            </h2>
-            
+            <div className="flex items-center gap-4">
+              <div className="flex-1 relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7d8592]" />
+                <Input
+                  placeholder="Tìm kiếm dự án..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-[300px] rounded-[14px] border-gray-200 font-['Nunito_Sans',Helvetica]"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px] rounded-[14px] border-gray-200">
+                  <SelectValue placeholder="Tất cả nhân sự" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tất cả">Tất cả nhân sự</SelectItem>
+                  <SelectItem value="Đang chạy">Đang chạy</SelectItem>
+                  <SelectItem value="Hoàn thành">Hoàn thành</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Quá hạn">Quá hạn</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="w-[150px] rounded-[14px] border-gray-200">
+                  <SelectValue placeholder="Tất cả tiến độ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tất cả">Tất cả tiến độ</SelectItem>
+                  {clients.map(client => (
+                    <SelectItem key={client} value={client}>{client}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button variant="outline" className="rounded-[14px] border-gray-200">
+                <FilterIcon className="w-4 h-4 mr-2" />
+                Dự án lưu trữ
+              </Button>
+            </div>
+
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold">
                   <PlusIcon className="w-4 h-4 mr-2" />
-                  Create Project
+                  Thêm dự án
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] rounded-3xl">
+              <DialogContent className="sm:max-w-[600px] rounded-3xl">
                 <DialogHeader>
                   <DialogTitle className="font-['Nunito_Sans',Helvetica] font-bold text-[#0a1629] text-xl">
-                    Create New Project
+                    Tạo dự án mới
                   </DialogTitle>
                   <DialogDescription className="text-[#7d8592]">
-                    Fill in the details to create a new project.
+                    Điền thông tin để tạo dự án mới.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                      Title
-                    </Label>
-                    <Input
-                      id="title"
-                      value={newProject.title}
-                      onChange={(e) => setNewProject(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Project title"
-                      className="col-span-3 rounded-[14px] border-gray-200"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="clientName" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Tên khách hàng
+                      </Label>
+                      <Input
+                        id="clientName"
+                        value={newProject.clientName}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, clientName: e.target.value }))}
+                        placeholder="Tên công ty/khách hàng"
+                        className="rounded-[14px] border-gray-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="projectName" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Tên dự án
+                      </Label>
+                      <Input
+                        id="projectName"
+                        value={newProject.projectName}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, projectName: e.target.value }))}
+                        placeholder="Tên dự án"
+                        className="rounded-[14px] border-gray-200"
+                      />
+                    </div>
                   </div>
-                  
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                      Description
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="contractValue" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Giá trị hợp đồng (VNĐ)
+                      </Label>
+                      <Input
+                        id="contractValue"
+                        type="number"
+                        value={newProject.contractValue}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, contractValue: parseInt(e.target.value) || 0 }))}
+                        placeholder="0"
+                        className="rounded-[14px] border-gray-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="paidAmount" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Đã thanh toán (VNĐ)
+                      </Label>
+                      <Input
+                        id="paidAmount"
+                        type="number"
+                        value={newProject.paidAmount}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, paidAmount: parseInt(e.target.value) || 0 }))}
+                        placeholder="0"
+                        className="rounded-[14px] border-gray-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                      Mô tả dự án
                     </Label>
                     <Input
                       id="description"
                       value={newProject.description}
                       onChange={(e) => setNewProject(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Project description"
-                      className="col-span-3 rounded-[14px] border-gray-200"
+                      placeholder="Mô tả chi tiết về dự án"
+                      className="rounded-[14px] border-gray-200"
                     />
                   </div>
 
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="category" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                      Category
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="status" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Trạng thái
+                      </Label>
+                      <Select value={newProject.status} onValueChange={(value: Project["status"]) => setNewProject(prev => ({ ...prev, status: value }))}>
+                        <SelectTrigger className="rounded-[14px] border-gray-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Đang chạy">Đang chạy</SelectItem>
+                          <SelectItem value="Hoàn thành">Hoàn thành</SelectItem>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="Quá hạn">Quá hạn</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="priority" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Độ ưu tiên
+                      </Label>
+                      <Select value={newProject.priority} onValueChange={(value: Project["priority"]) => setNewProject(prev => ({ ...prev, priority: value }))}>
+                        <SelectTrigger className="rounded-[14px] border-gray-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Thấp">Thấp</SelectItem>
+                          <SelectItem value="Trung bình">Trung bình</SelectItem>
+                          <SelectItem value="Cao">Cao</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="startDate" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Ngày bắt đầu
+                      </Label>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={newProject.startDate}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="rounded-[14px] border-gray-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="endDate" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                        Ngày kết thúc
+                      </Label>
+                      <Input
+                        id="endDate"
+                        type="date"
+                        value={newProject.endDate}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="rounded-[14px] border-gray-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="link" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                      Link dự án
                     </Label>
                     <Input
-                      id="category"
-                      value={newProject.category}
-                      onChange={(e) => setNewProject(prev => ({ ...prev, category: e.target.value }))}
-                      placeholder="e.g., Web Development"
-                      className="col-span-3 rounded-[14px] border-gray-200"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="priority" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                      Priority
-                    </Label>
-                    <Select value={newProject.priority} onValueChange={(value: Project["priority"]) => setNewProject(prev => ({ ...prev, priority: value }))}>
-                      <SelectTrigger className="col-span-3 rounded-[14px] border-gray-200">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="status" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                      Status
-                    </Label>
-                    <Select value={newProject.status} onValueChange={(value: Project["status"]) => setNewProject(prev => ({ ...prev, status: value }))}>
-                      <SelectTrigger className="col-span-3 rounded-[14px] border-gray-200">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Planning">Planning</SelectItem>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="On Hold">On Hold</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="deadline" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                      Deadline
-                    </Label>
-                    <Input
-                      id="deadline"
-                      value={newProject.deadline}
-                      onChange={(e) => setNewProject(prev => ({ ...prev, deadline: e.target.value }))}
-                      placeholder="e.g., Dec 31, 2024"
-                      className="col-span-3 rounded-[14px] border-gray-200"
+                      id="link"
+                      value={newProject.link}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, link: e.target.value }))}
+                      placeholder="https://..."
+                      className="rounded-[14px] border-gray-200"
                     />
                   </div>
                 </div>
@@ -552,195 +626,296 @@ export const ProjectsPageSection = (): JSX.Element => {
                     onClick={() => setIsCreateDialogOpen(false)}
                     className="rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
                   >
-                    Cancel
+                    Hủy
                   </Button>
                   <Button 
                     type="submit" 
                     onClick={handleCreateProject}
                     className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
                   >
-                    Create Project
+                    Tạo dự án
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Search and Filters */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7d8592]" />
-              <Input
-                placeholder="Search projects..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 rounded-[14px] border-gray-200 font-['Nunito_Sans',Helvetica]"
-              />
-            </div>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] rounded-[14px] border-gray-200">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Status</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="On Hold">On Hold</SelectItem>
-                <SelectItem value="Planning">Planning</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[150px] rounded-[14px] border-gray-200">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Priority</SelectItem>
-                <SelectItem value="High">High</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px] rounded-[14px] border-gray-200">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Projects Table */}
+      <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-[#f4f9fd]">
+                <tr>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">
+                    <input type="checkbox" className="rounded" />
+                  </th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Client</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Tên dự án</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Giá trị HD</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Đã thanh toán</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Công nợ</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Tiến độ TT</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Link</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Tiến độ</th>
+                  <th className="text-left p-4 font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629] text-sm">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProjects.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="text-center py-12">
+                      <div className="text-6xl mb-4">📁</div>
+                      <h3 className="text-xl font-bold text-[#0a1629] mb-2">Không tìm thấy dự án</h3>
+                      <p className="text-[#7d8592] mb-6">
+                        {searchTerm || statusFilter !== "Tất cả" || clientFilter !== "Tất cả"
+                          ? "Không có dự án nào phù hợp với bộ lọc hiện tại."
+                          : "Bạn chưa tạo dự án nào. Tạo dự án đầu tiên để bắt đầu."
+                        }
+                      </p>
+                      {!searchTerm && statusFilter === "Tất cả" && clientFilter === "Tất cả" && (
+                        <Button 
+                          onClick={() => setIsCreateDialogOpen(true)}
+                          className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
+                        >
+                          <PlusIcon className="w-4 h-4 mr-2" />
+                          Tạo dự án đầu tiên
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProjects.map((project) => (
+                    <tr key={project.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="p-4">
+                        <input type="checkbox" className="rounded" />
+                      </td>
+                      <td className="p-4">
+                        <span className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                          {project.clientName}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-['Nunito_Sans',Helvetica] text-[#0a1629]">
+                          {project.projectName}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-['Nunito_Sans',Helvetica] text-[#0a1629]">
+                          {formatCurrency(project.contractValue)}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-['Nunito_Sans',Helvetica] text-[#0ac846] font-semibold">
+                            {formatCurrency(project.paidAmount)}
+                          </span>
+                          <div className="w-4 h-4 text-[#0ac846]">✓</div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-['Nunito_Sans',Helvetica] text-[#ff6b6b] font-semibold">
+                          {formatCurrency(project.debt)}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-['Nunito_Sans',Helvetica] text-[#0a1629] font-semibold">
+                            {project.paymentProgress}%
+                          </span>
+                          <div className="w-4 h-4 text-[#0ac846]">✓</div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        {project.link ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(project.link, '_blank')}
+                            className="h-8 w-8 p-0 text-[#3f8cff] hover:bg-blue-50"
+                          >
+                            <ExternalLinkIcon className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-[#7d8592]">-</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="px-3 py-1 rounded-full text-sm font-semibold"
+                            style={{ 
+                              backgroundColor: `${statusColors[project.status]}20`, 
+                              color: statusColors[project.status] 
+                            }}
+                          >
+                            {project.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditDialog(project)}
+                            className="h-8 w-8 p-0 hover:bg-blue-50"
+                          >
+                            <EditIcon className="h-4 w-4 text-[#3f8cff]" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="h-8 w-8 p-0 hover:bg-red-50"
+                          >
+                            <TrashIcon className="h-4 w-4 text-[#ff6b6b]" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-gray-50"
+                          >
+                            <MoreHorizontalIcon className="h-4 w-4 text-[#7d8592]" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Projects List */}
-      <div className="space-y-6">
-        {filteredProjects.length === 0 ? (
-          <Card className="rounded-3xl shadow-[0px_6px_58px_#c3cbd61b]">
-            <CardContent className="p-12 text-center">
-              <div className="text-6xl mb-4">📁</div>
-              <h3 className="text-xl font-bold text-[#0a1629] mb-2">No Projects Found</h3>
-              <p className="text-[#7d8592] mb-6">
-                {searchTerm || statusFilter !== "All" || priorityFilter !== "All" || categoryFilter !== "All"
-                  ? "No projects match your current filters. Try adjusting your search criteria."
-                  : "You haven't created any projects yet. Create your first project to get started."
-                }
-              </p>
-              {!searchTerm && statusFilter === "All" && priorityFilter === "All" && categoryFilter === "All" && (
-                <Button 
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
-                >
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Create Your First Project
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          filteredProjects.map(renderProjectCard)
-        )}
-      </div>
-
       {/* Edit Project Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-3xl">
+        <DialogContent className="sm:max-w-[600px] rounded-3xl">
           <DialogHeader>
             <DialogTitle className="font-['Nunito_Sans',Helvetica] font-bold text-[#0a1629] text-xl">
-              Edit Project
+              Chỉnh sửa dự án
             </DialogTitle>
             <DialogDescription className="text-[#7d8592]">
-              Update the project details below.
+              Cập nhật thông tin dự án.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-title" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                Title
-              </Label>
-              <Input
-                id="edit-title"
-                value={newProject.title}
-                onChange={(e) => setNewProject(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Project title"
-                className="col-span-3 rounded-[14px] border-gray-200"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-clientName" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                  Tên khách hàng
+                </Label>
+                <Input
+                  id="edit-clientName"
+                  value={newProject.clientName}
+                  onChange={(e) => setNewProject(prev => ({ ...prev, clientName: e.target.value }))}
+                  placeholder="Tên công ty/khách hàng"
+                  className="rounded-[14px] border-gray-200"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-projectName" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                  Tên dự án
+                </Label>
+                <Input
+                  id="edit-projectName"
+                  value={newProject.projectName}
+                  onChange={(e) => setNewProject(prev => ({ ...prev, projectName: e.target.value }))}
+                  placeholder="Tên dự án"
+                  className="rounded-[14px] border-gray-200"
+                />
+              </div>
             </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-description" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                Description
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-contractValue" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                  Giá trị hợp đồng (VNĐ)
+                </Label>
+                <Input
+                  id="edit-contractValue"
+                  type="number"
+                  value={newProject.contractValue}
+                  onChange={(e) => setNewProject(prev => ({ ...prev, contractValue: parseInt(e.target.value) || 0 }))}
+                  placeholder="0"
+                  className="rounded-[14px] border-gray-200"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-paidAmount" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                  Đã thanh toán (VNĐ)
+                </Label>
+                <Input
+                  id="edit-paidAmount"
+                  type="number"
+                  value={newProject.paidAmount}
+                  onChange={(e) => setNewProject(prev => ({ ...prev, paidAmount: parseInt(e.target.value) || 0 }))}
+                  placeholder="0"
+                  className="rounded-[14px] border-gray-200"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-description" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                Mô tả dự án
               </Label>
               <Input
                 id="edit-description"
                 value={newProject.description}
                 onChange={(e) => setNewProject(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Project description"
-                className="col-span-3 rounded-[14px] border-gray-200"
+                placeholder="Mô tả chi tiết về dự án"
+                className="rounded-[14px] border-gray-200"
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-category" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                Category
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-status" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                  Trạng thái
+                </Label>
+                <Select value={newProject.status} onValueChange={(value: Project["status"]) => setNewProject(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger className="rounded-[14px] border-gray-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Đang chạy">Đang chạy</SelectItem>
+                    <SelectItem value="Hoàn thành">Hoàn thành</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Quá hạn">Quá hạn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-priority" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                  Độ ưu tiên
+                </Label>
+                <Select value={newProject.priority} onValueChange={(value: Project["priority"]) => setNewProject(prev => ({ ...prev, priority: value }))}>
+                  <SelectTrigger className="rounded-[14px] border-gray-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Thấp">Thấp</SelectItem>
+                    <SelectItem value="Trung bình">Trung bình</SelectItem>
+                    <SelectItem value="Cao">Cao</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-link" className="font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
+                Link dự án
               </Label>
               <Input
-                id="edit-category"
-                value={newProject.category}
-                onChange={(e) => setNewProject(prev => ({ ...prev, category: e.target.value }))}
-                placeholder="e.g., Web Development"
-                className="col-span-3 rounded-[14px] border-gray-200"
-              />
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-priority" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                Priority
-              </Label>
-              <Select value={newProject.priority} onValueChange={(value: Project["priority"]) => setNewProject(prev => ({ ...prev, priority: value }))}>
-                <SelectTrigger className="col-span-3 rounded-[14px] border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-status" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                Status
-              </Label>
-              <Select value={newProject.status} onValueChange={(value: Project["status"]) => setNewProject(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="col-span-3 rounded-[14px] border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Planning">Planning</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="On Hold">On Hold</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-deadline" className="text-right font-['Nunito_Sans',Helvetica] font-semibold text-[#0a1629]">
-                Deadline
-              </Label>
-              <Input
-                id="edit-deadline"
-                value={newProject.deadline}
-                onChange={(e) => setNewProject(prev => ({ ...prev, deadline: e.target.value }))}
-                placeholder="e.g., Dec 31, 2024"
-                className="col-span-3 rounded-[14px] border-gray-200"
+                id="edit-link"
+                value={newProject.link}
+                onChange={(e) => setNewProject(prev => ({ ...prev, link: e.target.value }))}
+                placeholder="https://..."
+                className="rounded-[14px] border-gray-200"
               />
             </div>
           </div>
@@ -751,14 +926,14 @@ export const ProjectsPageSection = (): JSX.Element => {
               onClick={() => setIsEditDialogOpen(false)}
               className="rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
             >
-              Cancel
+              Hủy
             </Button>
             <Button 
               type="submit" 
               onClick={handleEditProject}
               className="bg-[#3f8cff] hover:bg-[#3f8cff]/90 text-white rounded-[14px] font-['Nunito_Sans',Helvetica] font-semibold"
             >
-              Update Project
+              Cập nhật dự án
             </Button>
           </DialogFooter>
         </DialogContent>
